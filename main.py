@@ -2,10 +2,10 @@ import sys
 from utils import clear
 from classes.CinemaRoom import CinemaRoom
 from classes.Seat import Seat
-from utils import wait_for_continue, is_pensioneer
+from utils import wait_for_continue, is_pensioneer, validate_age
 from constants import MENU_OPTIONS, LIMIT_ROOM_ROWS, LIMIT_SEATS_PER_ROW
 
-def get_seat_details():
+def get_seat_details(multi = False):
     try:
         clear()
         row_input = input(f"Ingrese el número de fila (solo hay {LIMIT_ROOM_ROWS}): ")
@@ -43,16 +43,34 @@ def add_seat(cinema_room):
         except ValueError as e:
             wait_for_continue(f"Error al añadir el asiento: {e}")
 
+def add_multiple_seats(cinema_room):
+    try:
+        clear()
+        print("Añadir múltiples asientos:")
+
+        num_rows, num_seats = get_seat_details(multi=True)
+
+        if num_rows is not None and num_seats is not None:
+            added_seats = 0
+            for row in range(1, num_rows + 1):
+                for seat_num in range(1, num_seats + 1):
+                    if not cinema_room.find_seat(seat_num, row):
+                        seat = Seat(seat_num, row)
+                        cinema_room.add_seat(seat)
+                        added_seats += 1
+                    else:
+                        print(f"\nYa existe el asiento {seat_num} en la fila {row}")
+            
+            wait_for_continue(f"Se han añadido correctamente {added_seats} asientos.")
+    except ValueError as e:
+        wait_for_continue(f"Error: {e}")
+
 def reserve_seat(cinema_room):
     row, number = get_seat_details()
     if row is not None and number is not None:
         try:
             age_input = input("Ingrese la edad del usuario: ")
-            if not age_input.isdigit():
-                wait_for_continue("Error: La edad debe ser un número entero.")
-                return
-            
-            age = int(age_input)
+            age = validate_age(age_input)
             day = None
             if not is_pensioneer(age):
                 day = input("Ingrese el día de la semana: ")
@@ -92,6 +110,7 @@ def main():
     
     actions = {
         "add": lambda: add_seat(cinema_room),
+        "add_multiple": lambda: add_multiple_seats(cinema_room),
         "reserve": lambda: reserve_seat(cinema_room),
         "cancel": lambda: cancel_reservation(cinema_room),
         "show": lambda: show_all_seats(cinema_room),
@@ -117,7 +136,6 @@ def main():
         except ValueError:
             clear()
             wait_for_continue("Error: Por favor, ingrese un número válido.")
-
 
 if __name__ == "__main__":
     main()

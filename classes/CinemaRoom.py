@@ -1,4 +1,4 @@
-from utils import validate_day, is_pensioneer
+from utils import validate_day, is_pensioneer, validate_age
 from constants import TEST_BASE_PRICE
 
 class CinemaRoom:
@@ -59,8 +59,7 @@ class CinemaRoom:
 
     def _apply_discounts(self, base_price, age, day):
         validate_day(day)
-
-        if is_pensioneer(age):
+        if is_pensioneer(validate_age(age)):
             base_price *= 0.7
         elif day.lower() == "miércoles" or day.lower() == "miercoles":
             base_price *= 0.8
